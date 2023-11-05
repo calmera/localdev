@@ -1,0 +1,40 @@
+version: '3.8'
+
+volumes:
+  redis_data: {}
+  nats_data: {}
+
+services:
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+
+  nats:
+    image: nats
+    restart: always
+    command: "-c /etc/nats/nats.conf"
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf
+      - nats_data:/datastore
+    ports:
+      - "4222:4222"
+      - "1883:1883"
+      - "9001:9001"
+
+  blobl:
+    image: calmera/leeroy:latest
+    ports:
+      - "14195:4195"
+    restart: always
+    user: leeroy
+    command:
+      - "blobl"
+      - "server"
+      - "--host"
+      - "0.0.0.0"
+      - "-n"
